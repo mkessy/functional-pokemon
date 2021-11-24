@@ -18,12 +18,21 @@ const makePokeUrl = (count: number, offset: number) =>
   `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${count}`;
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<number>(0); // pages are 0 indexed by the paginator(?)
-  const [countPerPage, setCountPerPage] = useState<number>(20); // pages are 0 indexed by the paginator(?)
-  const [currentPageUrl, setCurrentPageUrl] = useState<O.Option<string>>(
-    O.some(POKE_ENDPOINT)
-  ); // pages are 0 indexed by the paginator(?)
-  // pages are 0 indexed by the paginator(?)
+  const [pageUrl, setCpp, setPageUrl] = usePaginator({
+    limit: 20,
+    totalCount: 1118,
+    makePageUrl: makePokeUrl,
+  });
+
+  const [page, setPage] = useState<number>(0);
+
+  const changePage = (pageNum?: number, cpp?: number) => {
+    if (pageNum) setPageUrl(pageNum);
+    if (cpp) {
+      setCpp(cpp);
+      setPageUrl(page);
+    }
+  };
 
   const [matchPokeResource, fetchPokeResource] = useSafeFetch<
     string,
@@ -34,16 +43,10 @@ function App() {
     O.Option<PokemonResource>
   >(O.none);
 
-  const paginator = makePaginator({
-    limit: 20,
-    totalCount: 1118,
-    makePageUrl: makePokeUrl,
-  });
-
   useEffect(() => {
     // fetch the poke resources
     pipe(
-      currentPageUrl,
+      pageUrl,
       O.fold(
         () => setCurrentResource(O.none),
         (url) =>
@@ -52,7 +55,7 @@ function App() {
           )
       )
     );
-  }, [currentPageUrl, fetchPokeResource]);
+  }, [pageUrl, fetchPokeResource]);
 
   return (
     <div>
@@ -75,10 +78,16 @@ function App() {
           }
         )}
       </ul>
-      <button className="rounded-lg px-4 py-2 bg-blue-500 text-blue-100">
+      <button
+        onClick={() => setPageUrl(8)}
+        className="rounded-lg px-4 py-2 bg-blue-500 text-blue-100"
+      >
         Primary
       </button>
-      <button className="rounded-lg px-4 py-2 bg-blue-500 text-blue-100">
+      <button
+        onClick={() => setCpp(5)}
+        className="rounded-lg px-4 py-2 bg-blue-500 text-blue-100"
+      >
         Change per page count
       </button>
     </div>
