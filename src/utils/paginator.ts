@@ -17,7 +17,7 @@ export interface PaginatorDependencies {
   makePageUrl: (count: number, offset: number) => string;
 }
 
-type Paginator = (count: number) => ReadonlyArray<O.Option<string>>;
+type Paginator = (count: number) => [ReadonlyArray<O.Option<string>>, number];
 
 const countPerPage =
   (countPerPage: number): R.Reader<PaginatorDependencies, number> =>
@@ -41,8 +41,9 @@ export const makePaginator: R.Reader<PaginatorDependencies, Paginator> = (
     const tpp = totalPageCount()(deps);
     const cpp = countPerPage(count)(deps);
 
-    return RO.makeBy(tpp - 1, (pageNum) =>
+    const pageUrls = RO.makeBy(tpp - 1, (pageNum) =>
       O.some(deps.makePageUrl(cpp, cpp * pageNum))
     );
+    return [pageUrls, pageUrls.length];
   };
 };

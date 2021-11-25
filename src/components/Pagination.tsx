@@ -1,7 +1,15 @@
 import React from "react";
 import PaginatedPageLink from "./PaginatedPageLink";
+import * as O from "fp-ts/Option";
+import * as RO from "fp-ts/ReadonlyArray";
+import { pipe } from "fp-ts/lib/function";
 
-const Pagination = () => {
+type PaginationProps = {
+  pageUrls: ReadonlyArray<O.Option<string>>;
+  handleChangePage: (pageNum: number) => void;
+};
+
+const Pagination = ({ pageUrls, handleChangePage }: PaginationProps) => {
   return (
     <div>
       <nav
@@ -28,6 +36,10 @@ const Pagination = () => {
             ></path>
           </svg>
         </a>
+        {pipe(
+          pageUrls,
+          RO.mapWithIndex((i, url) => PaginatedPageLink(i, handleChangePage))
+        )}
 
         <a
           href={"/"}

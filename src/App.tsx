@@ -20,20 +20,33 @@ const makePokeUrl = (count: number, offset: number) =>
   `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${count}`;
 
 function App() {
-  const [page, setPage] = useState<number>(0);
-  const [pageUrl, setPageUrl] = useState<O.Option<string>>(O.of(POKE_ENDPOINT));
-
   const [paginator] = usePaginator({
     limit: 20,
     totalCount: 1118,
     makePageUrl: makePokeUrl,
   });
+  const [page, setPage] = useState<number>(0);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageUrl, setPageUrl] = useState<O.Option<string>>(O.of(POKE_ENDPOINT));
+  const [pageUrls, setPageUrls] = useState<ReadonlyArray<O.Option<string>>>(
+    paginator(20)[0]
+  );
+
+  const changePagination = useCallback(
+    (countPerPage: number) => {
+      const [pageUrls, numPages] = paginator(countPerPage);
+      setPageUrl(pageUrls[page]);
+      setPageUrls(pageUrls);
+      setNumPages(numPages);
+    },
+    [paginator, page]
+  );
 
   const changePage = useCallback(
     (pageNum: number) => {
-      setPageUrl(paginator(20)[pageNum]);
+      setPageUrl(pageUrls[pageNum]);
     },
-    [paginator]
+    [pageUrls]
   );
 
   const [matchPokeResource, fetchPokeResource] = useSafeFetch<
@@ -73,7 +86,7 @@ function App() {
             <PokeCardLoader pokeResourceList={pokeResource} />
           )
         )}
-        <Pagination />
+        <Pagination pageUrls={pageUrls} handleChangePage={changePage} />
       </div>
     </div>
   );
