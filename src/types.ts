@@ -1,6 +1,6 @@
 import * as D from "io-ts/Decoder";
-import { Pokemon, PokemonResourceDecoder } from "./utils/decoders";
+import { PokemonDecoder, PokemonResourceDecoder } from "./utils/decoders";
 
-export type Pokemon = D.TypeOf<typeof Pokemon>;
+export type Pokemon = D.TypeOf<typeof PokemonDecoder>;
 
 export type PokemonResource = D.TypeOf<typeof PokemonResourceDecoder>;

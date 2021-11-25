@@ -11,6 +11,8 @@ import { makePaginator } from "./utils/paginator";
 import { usePaginator } from "./hooks/usePaginator";
 import { useSafeFetch } from "./hooks/useSafeFetch";
 import { renderNone, renderLoading, renderError } from "./components/utility";
+import PokeCardLoader from "./components/PokeCardLoader";
+import Pagination from "./components/Pagination";
 import { pipe } from "fp-ts/lib/function";
 
 const POKE_ENDPOINT = "https://pokeapi.co/api/v2/pokemon";
@@ -18,21 +20,21 @@ const makePokeUrl = (count: number, offset: number) =>
   `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${count}`;
 
 function App() {
-  const [pageUrl, setCpp, setPageUrl] = usePaginator({
+  const [page, setPage] = useState<number>(0);
+  const [pageUrl, setPageUrl] = useState<O.Option<string>>(O.of(POKE_ENDPOINT));
+
+  const [paginator] = usePaginator({
     limit: 20,
     totalCount: 1118,
     makePageUrl: makePokeUrl,
   });
 
-  const [page, setPage] = useState<number>(0);
-
-  const changePage = (pageNum?: number, cpp?: number) => {
-    if (pageNum) setPageUrl(pageNum);
-    if (cpp) {
-      setCpp(cpp);
-      setPageUrl(page);
-    }
-  };
+  const changePage = useCallback(
+    (pageNum: number) => {
+      setPageUrl(paginator(20)[pageNum]);
+    },
+    [paginator]
+  );
 
   const [matchPokeResource, fetchPokeResource] = useSafeFetch<
     string,
@@ -55,41 +57,24 @@ function App() {
           )
       )
     );
-  }, [pageUrl, fetchPokeResource]);
+  }, [fetchPokeResource, pageUrl]);
 
   return (
     <div>
       <h1 className="text-center text-lg text-blue-400 mt-10">
         Functional Poke
       </h1>
-      <ul>
+      <div className="container mx-auto mt-4">
         {matchPokeResource(
           () => renderNone(),
           () => renderLoading(),
           (e) => renderError(e),
-          ({ count, results }, isLoading) => {
-            return results.map(({ name, url }) => {
-              return (
-                <li key={url}>
-                  <a href={url}>{name}</a>
-                </li>
-              );
-            });
-          }
+          (pokeResource, isLoading) => (
+            <PokeCardLoader pokeResourceList={pokeResource} />
+          )
         )}
-      </ul>
-      <button
-        onClick={() => setPageUrl(8)}
-        className="rounded-lg px-4 py-2 bg-blue-500 text-blue-100"
-      >
-        Primary
-      </button>
-      <button
-        onClick={() => setCpp(5)}
-        className="rounded-lg px-4 py-2 bg-blue-500 text-blue-100"
-      >
-        Change per page count
-      </button>
+        <Pagination />
+      </div>
     </div>
   );
 }

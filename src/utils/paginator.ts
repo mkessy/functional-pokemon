@@ -1,6 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as R from "fp-ts/Reader";
 import * as O from "fp-ts/Option";
+import * as RO from "fp-ts/ReadonlyArray";
 
 // integrating with React
 
@@ -16,7 +17,7 @@ export interface PaginatorDependencies {
   makePageUrl: (count: number, offset: number) => string;
 }
 
-type Paginator = (countPerPage: number) => (page: number) => O.Option<string>;
+type Paginator = (count: number) => ReadonlyArray<O.Option<string>>;
 
 const countPerPage =
   (countPerPage: number): R.Reader<PaginatorDependencies, number> =>
@@ -36,13 +37,12 @@ const totalPageCount =
 export const makePaginator: R.Reader<PaginatorDependencies, Paginator> = (
   deps
 ) => {
-  return (count: number) =>
-    (pageNum: number = 0) => {
-      const tpp = totalPageCount()(deps);
-      const cpp = countPerPage(count)(deps);
+  return (count: number) => {
+    const tpp = totalPageCount()(deps);
+    const cpp = countPerPage(count)(deps);
 
-      if (pageNum > tpp) return O.none;
-      if (pageNum < 0) return O.none;
-      return O.some(deps.makePageUrl(cpp, cpp * pageNum));
-    };
+    return RO.makeBy(tpp - 1, (pageNum) =>
+      O.some(deps.makePageUrl(cpp, cpp * pageNum))
+    );
+  };
 };

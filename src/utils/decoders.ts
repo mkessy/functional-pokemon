@@ -1,6 +1,6 @@
 import * as D from "io-ts/Decoder";
 
-export const Pokemon = D.struct({
+export const PokemonDecoder = D.struct({
   id: D.number,
   name: D.string,
   height: D.number,
