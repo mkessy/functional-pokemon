@@ -25,7 +25,7 @@ function App() {
     totalCount: 1118,
     makePageUrl: makePokeUrl,
   });
-  const [page, setPage] = useState<number>(0);
+  const [currentPage, setPage] = useState<number>(0);
   const [numPages, setNumPages] = useState<number>(0);
   const [pageUrl, setPageUrl] = useState<O.Option<string>>(O.of(POKE_ENDPOINT));
   const [pageUrls, setPageUrls] = useState<ReadonlyArray<O.Option<string>>>(
@@ -35,16 +35,17 @@ function App() {
   const changePagination = useCallback(
     (countPerPage: number) => {
       const [pageUrls, numPages] = paginator(countPerPage);
-      setPageUrl(pageUrls[page]);
+      setPageUrl(pageUrls[currentPage]);
       setPageUrls(pageUrls);
       setNumPages(numPages);
     },
-    [paginator, page]
+    [paginator, currentPage]
   );
 
   const changePage = useCallback(
     (pageNum: number) => {
       setPageUrl(pageUrls[pageNum]);
+      setPage(pageNum);
     },
     [pageUrls]
   );
@@ -86,7 +87,12 @@ function App() {
             <PokeCardLoader pokeResourceList={pokeResource} />
           )
         )}
-        <Pagination pageUrls={pageUrls} handleChangePage={changePage} />
+        <Pagination
+          pageUrls={pageUrls}
+          handleChangePage={changePage}
+          currPage={currentPage}
+        />
+        <button onClick={() => changePagination(10)}>Change pagination</button>
       </div>
     </div>
   );

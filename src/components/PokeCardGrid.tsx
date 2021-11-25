@@ -21,8 +21,13 @@ export default PokeCardGrid;
 type PokeCardProps = { pokemon: Pokemon };
 
 const PokeCard = (pokemon: Pokemon) => {
+  console.log(pokemon);
   return (
     <article key={pokemon.id} className="overflow-hidden rounded-lg shadow-lg">
+      <img
+        alt={pokemon.name}
+        src={pokemon.sprites.other["official-artwork"].front_default}
+      />
       <a className="no-underline hover:underline text-black" href={"/"}>
         {pokemon.name + " " + pokemon.id}
       </a>
